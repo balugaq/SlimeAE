@@ -779,7 +779,7 @@ public class ItemUtils {
             List<String> lore = result.getLore();
             if (lore != null) {
                 List<String> finalLore = lore;
-                NBT.modify(itemStack, x -> {
+                NBT.modify(result, x -> {
                     x.getStringList(SOURCE_LORE_KEY).addAll(finalLore);
                 });
             }
