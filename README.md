@@ -1,5 +1,6 @@
 ![](https://cdn.jsdelivr.net/gh/TimetownDev/SlimeAE@master/imgs/SlimeAE.png)
 
+这是一个增加了无数debug调试版本的ae，不能用于生产环境使用
 SlimeAE是一个Slimefun附属插件，可以创建一个复杂的物品存储与运输系统，并可以进行自动合成。
 
 ## 前置
