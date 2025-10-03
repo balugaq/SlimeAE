@@ -61,7 +61,7 @@ public class METerminal extends TickingBlock implements IMEObject, InventoryBloc
     public static final String FILTER_KEY = "filter";
 
     public int[] getBorderSlots() {
-        return new int[] {17, 26};
+        return new int[] {17, 26, getFilter()};
     }
 
     public int[] getDisplaySlots() {
@@ -194,36 +194,20 @@ public class METerminal extends TickingBlock implements IMEObject, InventoryBloc
 
         Player player = (Player) blockMenu.getInventory().getViewers().get(0);
 
-        // 获取过滤器
-        String filter = getFilter(block).toLowerCase(Locale.ROOT);
-
-        // 过滤和排序逻辑
         List<Map.Entry<ItemStack, Long>> items = new ArrayList<>(storage.entrySet());
-        if (!filter.isEmpty()) {
-            if (!SlimeAEPlugin.getJustEnoughGuideIntegration().isLoaded())
-                items.removeIf(x -> doFilterNoJEG(x, filter));
-            else {
-                boolean isPinyinSearch = JustEnoughGuide.getConfigManager().isPinyinSearch();
-                SearchGroup group = new SearchGroup(null, player, filter, isPinyinSearch);
-                List<SlimefunItem> slimefunItems = group.filterItems(player, filter, isPinyinSearch);
-                items.removeIf(x -> doFilterWithJEG(x, slimefunItems, filter));
-            }
-        }
 
         if (storage instanceof CreativeItemMap) items.sort(MATERIAL_SORT);
         else items.sort(getSort(block));
 
         int pinnedCount = 0;
-        if (filter.isEmpty()) {
-            PinnedManager pinnedManager = SlimeAEPlugin.getPinnedManager();
-            List<ItemStack> pinnedItems = pinnedManager.getPinnedItems(player);
-            if (pinnedItems == null) pinnedItems = new ArrayList<>();
+        PinnedManager pinnedManager = SlimeAEPlugin.getPinnedManager();
+        List<ItemStack> pinnedItems = pinnedManager.getPinnedItems(player);
+        if (pinnedItems == null) pinnedItems = new ArrayList<>();
 
-            for (ItemStack pinned : pinnedItems) {
-                if (!storage.containsKey(pinned)) continue;
-                items.add(0, new AbstractMap.SimpleEntry<>(pinned, storage.get(pinned)));
-                pinnedCount++;
-            }
+        for (ItemStack pinned : pinnedItems) {
+            if (!storage.containsKey(pinned)) continue;
+            items.add(0, new AbstractMap.SimpleEntry<>(pinned, storage.get(pinned)));
+            pinnedCount++;
         }
 
         // 计算分页
@@ -313,25 +297,6 @@ public class METerminal extends TickingBlock implements IMEObject, InventoryBloc
                 return false;
             }
             setSort(block, Integer.parseInt(value) + 1);
-            return false;
-        });
-
-        menu.replaceExistingItem(getFilter(), MenuItems.FILTER_STACK);
-        menu.addMenuClickHandler(getFilter(), (player, i, cursor, clickAction) -> {
-            if (clickAction.isRightClicked()) {
-                setFilter(block, "");
-            } else {
-                player.closeInventory();
-                player.sendMessage(ChatColor.YELLOW + "请输入你想要过滤的物品名称(显示名)或类型");
-                ChatUtils.awaitInput(player, filter -> {
-                    if (filter.isBlank()) {
-                        return;
-                    }
-                    setFilter(block, filter.toLowerCase(Locale.ROOT));
-                    player.sendMessage(ChatColor.GREEN + "已启用过滤器");
-                    menu.open(player);
-                });
-            }
             return false;
         });
 

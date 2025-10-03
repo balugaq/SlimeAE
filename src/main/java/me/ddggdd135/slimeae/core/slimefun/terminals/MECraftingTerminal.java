@@ -42,7 +42,7 @@ public class MECraftingTerminal extends METerminal {
 
     @Override
     public int[] getBorderSlots() {
-        return new int[] {0, 1, 3, 4, 5, 14, 23, 32, 33, 34, 35, 41, 42, 44, 45, 47, 49, 50, 51, 52, 53};
+        return new int[] {0, 1, 3, 4, 5, 14, 23, 32, 33, 34, 35, 41, 42, 44, 45, 47, 49, 50, 51, 52, 53, getFilter()};
     }
 
     @Override
