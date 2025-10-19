@@ -1,7 +1,5 @@
 package me.ddggdd135.slimeae.core.slimefun.terminals;
 
-import com.balugaq.jeg.api.groups.SearchGroup;
-import com.balugaq.jeg.implementation.JustEnoughGuide;
 import com.github.houbb.pinyin.constant.enums.PinyinStyleEnum;
 import com.github.houbb.pinyin.util.PinyinHelper;
 import com.xzavier0722.mc.plugin.slimefun4.storage.controller.SlimefunBlockData;
@@ -13,7 +11,6 @@ import io.github.thebusybiscuit.slimefun4.api.recipes.RecipeType;
 import io.github.thebusybiscuit.slimefun4.core.handlers.BlockBreakHandler;
 import io.github.thebusybiscuit.slimefun4.implementation.handlers.SimpleBlockBreakHandler;
 import io.github.thebusybiscuit.slimefun4.libraries.dough.inventory.InvUtils;
-import io.github.thebusybiscuit.slimefun4.utils.ChatUtils;
 import io.github.thebusybiscuit.slimefun4.utils.ChestMenuUtils;
 import io.github.thebusybiscuit.slimefun4.utils.SlimefunUtils;
 import java.text.Collator;
