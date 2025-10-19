@@ -3,11 +3,9 @@ package me.ddggdd135.slimeae.integrations.networksexpansion;
 import com.balugaq.netex.api.data.ItemContainer;
 import com.balugaq.netex.api.data.StorageUnitData;
 import com.ytdd9527.networksexpansion.implementation.machines.unit.NetworksDrawer;
+import com.ytdd9527.networksexpansion.utils.databases.DataStorage;
 import io.github.thebusybiscuit.slimefun4.utils.SlimefunUtils;
-import java.util.AbstractMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import javax.annotation.Nonnull;
 import me.ddggdd135.guguslimefunlib.api.ItemHashMap;
 import me.ddggdd135.guguslimefunlib.items.ItemKey;
@@ -61,7 +59,7 @@ public class DrawerStorage implements IStorage {
             boolean found = false;
             for (ItemContainer itemContainer : items) {
                 if (SlimefunUtils.isItemSimilar(
-                        request.getKey().getItemStack(), itemContainer.getSample(), true, false)) {
+                        request.getKey().getItemStack(), itemContainer.getSampleDirectly(), true, false)) {
                     if (itemContainer.getAmount() < request.getAmount()) return false;
                     found = true;
                     break;
@@ -76,12 +74,24 @@ public class DrawerStorage implements IStorage {
     @Override
     public ItemStorage takeItem(@Nonnull ItemRequest[] requests) {
         if (data == null) return new ItemStorage();
-        io.github.sefiraat.networks.network.stackcaches.ItemRequest[] networksRequests =
-                SlimeAEPlugin.getNetworksIntegration().asNetworkRequests(requests);
+
         ItemStorage storage = new ItemStorage();
-        for (io.github.sefiraat.networks.network.stackcaches.ItemRequest request : networksRequests) {
-            ItemStack itemStack = data.requestItem(request);
-            if (itemStack != null && !itemStack.getType().isAir()) storage.addItem(itemStack);
+        for (ItemRequest request : requests) {
+            int amount = (int) request.getAmount();
+
+            for (ItemContainer itemContainer : data.getStoredItemsDirectly()) {
+                int containerAmount = itemContainer.getAmount();
+                if (itemContainer.getSampleDirectly().isSimilar(request.getKey().getItemStack())) {
+                    int take = Math.min(amount, containerAmount);
+                    if (take > 0) {
+                        itemContainer.removeAmount(take);
+                        DataStorage.setStoredAmount(data.getId(), itemContainer.getId(), itemContainer.getAmount());
+
+                        storage.addItem(request.getKey(), take);
+                    }
+                    break;
+                }
+            }
         }
         return storage;
     }
@@ -91,8 +101,8 @@ public class DrawerStorage implements IStorage {
     public ItemHashMap<Long> getStorageUnsafe() {
         ItemHashMap<Long> storage = new ItemHashMap<>();
         if (data == null) return storage;
-        for (ItemContainer itemContainer : data.getStoredItems()) {
-            storage.put(itemContainer.getSample(), (long) itemContainer.getAmount());
+        for (ItemContainer itemContainer : data.getStoredItemsDirectly()) {
+            storage.put(itemContainer.getSampleDirectly(), (long) itemContainer.getAmount());
         }
 
         return storage;
@@ -102,8 +112,9 @@ public class DrawerStorage implements IStorage {
     public int getTier(@Nonnull ItemKey itemStack) {
         if (data == null) return -1;
 
-        for (ItemContainer itemContainer : data.getStoredItems()) {
-            if (itemStack.getItemStack().getType() == itemContainer.getWrapper().getType()) {
+        for (ItemContainer itemContainer : data.getStoredItemsDirectly()) {
+            if (itemStack.getItemStack().getType()
+                    == itemContainer.getSampleDirectly().getType()) {
                 return 3000;
             }
         }

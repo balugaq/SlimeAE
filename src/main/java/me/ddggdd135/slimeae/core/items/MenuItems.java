@@ -45,7 +45,8 @@ public class MenuItems {
             "_AE_MN_CHANGE_SORT_STACK_", new AdvancedCustomItemStack(Material.BLUE_STAINED_GLASS_PANE, "&e更改排序方式"));
 
     public static final SlimefunItemStack FILTER_STACK = new SlimefunItemStack(
-            "_AE_MN_FILTER_STACK_", new AdvancedCustomItemStack(Material.NAME_TAG, "&e设置过滤器 (右键点击以清除)"));
+            "_AE_MN_FILTER_STACK_",
+            new AdvancedCustomItemStack(Material.NAME_TAG, "&e设置过滤器", "", "&e右键清除过滤器", "&aShift点击将在粘液书中搜索当前物品"));
     public static final SlimefunItemStack PUSH_BACK = new SlimefunItemStack(
             "_AE_MN_PUSH_BACK_", new AdvancedCustomItemStack(Material.BARRIER, "&c&l点击将物品返回ME网络"));
     public static final ItemStack CRAFT_ITEM =
@@ -68,6 +69,11 @@ public class MenuItems {
             "_AE_MN_FUZZY_", new AdvancedCustomItemStack(Material.LIME_STAINED_GLASS_PANE, "&e模糊模式", "", "&e点击切换"));
     public static final SlimefunItemStack CANNOT_NOW =
             new SlimefunItemStack("_AE_MN_CANNOT_NOW_", new AdvancedCustomItemStack(Material.BARRIER, "&c&l现在不行"));
+    public static final SlimefunItemStack JEG_RECIPE_BUTTON = new SlimefunItemStack(
+            "_AE_JEG_RECIPE_BUTTON_", new AdvancedCustomItemStack(Material.KNOWLEDGE_BOOK, "&6配方补全", "&7点击打开配方补全界面"));
+    public static final SlimefunItemStack JEG_FINDING_BUTTON = new SlimefunItemStack(
+            "_AE_JEG_FINDING_BUTTON_",
+            new AdvancedCustomItemStack(Material.KNOWLEDGE_BOOK, "&6高级物品查找", "&7点击打开高级物品查找界面"));
     public static final NamespacedKey MENU_ITEM = new NamespacedKey(SlimeAEPlugin.getInstance(), "menu_item");
 
     static {

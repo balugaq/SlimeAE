@@ -13,12 +13,9 @@ import me.ddggdd135.slimeae.core.NetworkInfo;
 import me.ddggdd135.slimeae.core.commands.SlimeAECommand;
 import me.ddggdd135.slimeae.core.commands.subcommands.*;
 import me.ddggdd135.slimeae.core.generations.SlimefunBlockPopulator;
-import me.ddggdd135.slimeae.core.items.SlimefunAEItemGroups;
-import me.ddggdd135.slimeae.core.items.SlimefunAEItems;
-import me.ddggdd135.slimeae.core.listeners.BlockListener;
-import me.ddggdd135.slimeae.core.listeners.CardListener;
-import me.ddggdd135.slimeae.core.listeners.NetworkListener;
-import me.ddggdd135.slimeae.core.listeners.NetworksIntegrationListener;
+import me.ddggdd135.slimeae.core.items.SlimeAEItemGroups;
+import me.ddggdd135.slimeae.core.items.SlimeAEItems;
+import me.ddggdd135.slimeae.core.listeners.*;
 import me.ddggdd135.slimeae.core.managers.PinnedManager;
 import me.ddggdd135.slimeae.core.slimefun.MECleaner;
 import me.ddggdd135.slimeae.core.slimefun.MECraftingTrigger;
@@ -103,14 +100,16 @@ public final class SlimeAEPlugin extends JavaPlugin implements SlimefunAddon {
         reloadConfig0();
 
         // Plugin startup logic
-        SlimefunAEItemGroups.onSetup(this);
-        SlimefunAEItems.onSetup(this);
+        SlimeAEItemGroups.onSetup(this);
+        SlimeAEItems.onSetup(this);
 
         Bukkit.getPluginManager().registerEvents(new BlockListener(), this);
         Bukkit.getPluginManager().registerEvents(new CardListener(), this);
         Bukkit.getPluginManager().registerEvents(new NetworkListener(), this);
         if (networksExpansionIntegration.isLoaded())
             Bukkit.getPluginManager().registerEvents(new NetworksIntegrationListener(), this);
+        if (justEnoughGuideIntegration.isLoaded())
+            Bukkit.getPluginManager().registerEvents(new JEGCompatibleListener(), this);
 
         if (infinityIntegration.isLoaded()) getLogger().info("无尽贪婪已接入");
         if (fluffyMachinesIntegration.isLoaded()) getLogger().info("蓬松科技已接入");

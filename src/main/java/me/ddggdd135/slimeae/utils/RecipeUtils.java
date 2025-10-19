@@ -29,7 +29,7 @@ import me.ddggdd135.slimeae.api.autocraft.CraftType;
 import me.ddggdd135.slimeae.api.autocraft.CraftingRecipe;
 import me.ddggdd135.slimeae.api.wrappers.CraftCraftingBlock;
 import me.ddggdd135.slimeae.api.wrappers.CraftCraftingBlockRecipe;
-import me.ddggdd135.slimeae.core.items.SlimefunAEItems;
+import me.ddggdd135.slimeae.core.items.SlimeAEItems;
 import me.ddggdd135.slimeae.core.recipes.SlimefunAERecipeTypes;
 import me.lucasgithuber.obsidianexpansion.Items;
 import me.lucasgithuber.obsidianexpansion.machines.ObsidianForge;
@@ -38,6 +38,7 @@ import me.mrCookieSlime.Slimefun.Objects.SlimefunItem.abstractItems.MachineRecip
 import me.sfiguz7.transcendence.lists.TEItems;
 import me.sfiguz7.transcendence.lists.TERecipeType;
 import org.bukkit.Bukkit;
+import org.bukkit.Material;
 import org.bukkit.inventory.*;
 
 public class RecipeUtils {
@@ -78,7 +79,12 @@ public class RecipeUtils {
             if (recipe instanceof ShapedRecipe shapedRecipe) {
                 return new CraftingRecipe(
                         CraftType.CRAFTING_TABLE,
-                        shapedRecipe.getIngredientMap().values().toArray(ItemStack[]::new),
+                        shapedRecipe.getIngredientMap().values().stream()
+                                .map(x -> {
+                                    if (x == null) return null;
+                                    return new ItemStack(x.getType(), x.getAmount());
+                                })
+                                .toArray(ItemStack[]::new),
                         new ItemStack(
                                 shapedRecipe.getResult().getType(),
                                 shapedRecipe.getResult().getAmount()));
@@ -86,7 +92,12 @@ public class RecipeUtils {
             if (recipe instanceof ShapelessRecipe shapelessRecipe) {
                 return new CraftingRecipe(
                         CraftType.CRAFTING_TABLE,
-                        shapelessRecipe.getIngredientList().toArray(ItemStack[]::new),
+                        shapelessRecipe.getIngredientList().stream()
+                                .map(x -> {
+                                    if (x == null) return null;
+                                    return new ItemStack(x.getType(), x.getAmount());
+                                })
+                                .toArray(ItemStack[]::new),
                         new ItemStack(
                                 shapelessRecipe.getResult().getType(),
                                 shapelessRecipe.getResult().getAmount()));
@@ -116,13 +127,15 @@ public class RecipeUtils {
             in:
             for (ItemStack[] input1 : getInputs(entry.getKey())) {
                 for (int i = 0; i < Math.max(input.length, input1.length); i++) {
-                    ItemStack x = null;
-                    ItemStack y = null;
+                    ItemStack x = new ItemStack(Material.AIR);
+                    ItemStack y = new ItemStack(Material.AIR);
                     if (input.length > i) {
                         x = input[i];
+                        if (x == null) x = new ItemStack(Material.AIR);
                     }
                     if (input1.length > i) {
                         y = input1[i];
+                        if (y == null) y = new ItemStack(Material.AIR);
                     }
                     if (!SlimefunUtils.isItemSimilar(x, y, true, false)) {
                         continue in;
@@ -138,6 +151,12 @@ public class RecipeUtils {
                 Arrays.stream(input).filter(Objects::nonNull).anyMatch(item -> SlimefunItem.getByItem(item) != null);
         if (inputHasSimi) return null;
 
+        ItemStack[] oldInput = input;
+        input = new ItemStack[9];
+        for (int i = 0; i < 9; i++) {
+            if (oldInput.length <= i) break;
+            input[i] = oldInput[i];
+        }
         Recipe minecraftRecipe =
                 Bukkit.getCraftingRecipe(input, Bukkit.getWorlds().get(0));
         if (minecraftRecipe instanceof ShapedRecipe shapedRecipe) {
@@ -151,8 +170,8 @@ public class RecipeUtils {
         if (minecraftRecipe instanceof ShapelessRecipe shapelessRecipe) {
             return new CraftingRecipe(
                     CraftType.CRAFTING_TABLE,
-                    shapelessRecipe.getIngredientList().stream()
-                            .map(x -> new ItemStack(x.getType()))
+                    Arrays.stream(ItemUtils.trimItems(input))
+                            .map(ItemStack::asOne)
                             .toArray(ItemStack[]::new),
                     new ItemStack(
                             shapelessRecipe.getResult().getType(),
@@ -183,40 +202,27 @@ public class RecipeUtils {
             if (entry.getValue() == null) continue;
             in:
             for (ItemStack[] input1 : getInputs(entry.getKey())) {
-                for (int i = 0; i < Math.max(input.length, input1.length); i++) {
-                    ItemStack x = null;
-                    ItemStack y = null;
-                    if (input.length > i) {
-                        x = input[i];
-                    }
-                    if (input1.length > i) {
-                        y = input1[i];
-                    }
-                    if (!SlimefunUtils.isItemSimilar(x, y, true, false)) {
-                        continue in;
-                    }
-                }
+                if (!ItemUtils.matchesAll(input, input1, false)) continue in;
 
                 ItemStack[] output1 = getOutputs(entry.getKey(), input1);
 
-                for (int i = 0; i < Math.max(output.length, output1.length); i++) {
-                    ItemStack x = null;
-                    ItemStack y = null;
-                    if (output.length > i) {
-                        x = output[i];
-                    }
-                    if (output1.length > i) {
-                        y = output1[i];
-                    }
-                    if (!SlimefunUtils.isItemSimilar(x, y, true, false)) {
-                        continue in;
-                    }
-                }
+                if (!ItemUtils.matchesAll(output, output1, false)) continue in;
 
                 return new CraftingRecipe(getCraftType(entry.getKey()), input1, output1);
             }
         }
 
+        // 校验输入中是否包含粘液物品，粘液物品不应该用原版配方合成
+        boolean inputHasSimi =
+                Arrays.stream(input).filter(Objects::nonNull).anyMatch(item -> SlimefunItem.getByItem(item) != null);
+        if (inputHasSimi) return null;
+
+        ItemStack[] oldInput = input;
+        input = new ItemStack[9];
+        for (int i = 0; i < 9; i++) {
+            if (oldInput.length <= i) break;
+            input[i] = oldInput[i];
+        }
         Recipe minecraftRecipe =
                 Bukkit.getCraftingRecipe(input, Bukkit.getWorlds().get(0));
         if (minecraftRecipe instanceof ShapedRecipe shapedRecipe) {
@@ -225,7 +231,12 @@ public class RecipeUtils {
             if (output.length == 1 && SlimefunUtils.isItemSimilar(output[0], out, true, false))
                 return new CraftingRecipe(
                         CraftType.CRAFTING_TABLE,
-                        shapedRecipe.getIngredientMap().values().toArray(ItemStack[]::new),
+                        Arrays.stream(input)
+                                .map(x -> {
+                                    if (x == null) return null;
+                                    return new ItemStack(x.getType(), x.getAmount());
+                                })
+                                .toArray(ItemStack[]::new),
                         output);
         }
         if (minecraftRecipe instanceof ShapelessRecipe shapelessRecipe) {
@@ -235,8 +246,11 @@ public class RecipeUtils {
             if (output.length == 1 && SlimefunUtils.isItemSimilar(output[0], out, true, false))
                 return new CraftingRecipe(
                         CraftType.CRAFTING_TABLE,
-                        shapelessRecipe.getIngredientList().stream()
-                                .map(x -> new ItemStack(x.getType()))
+                        Arrays.stream(input)
+                                .map(x -> {
+                                    if (x == null) return null;
+                                    return new ItemStack(x.getType(), x.getAmount());
+                                })
                                 .toArray(ItemStack[]::new),
                         new ItemStack(
                                 shapelessRecipe.getResult().getType(),
@@ -542,8 +556,8 @@ public class RecipeUtils {
     static {
         SUPPORTED_RECIPE_TYPES.put(
                 RecipeType.ENHANCED_CRAFTING_TABLE, SlimefunItem.getByItem(SlimefunItems.ENHANCED_CRAFTING_TABLE));
-        SUPPORTED_RECIPE_TYPES.put(SlimefunAERecipeTypes.CHARGER, SlimefunItem.getByItem(SlimefunAEItems.CHARGER));
-        SUPPORTED_RECIPE_TYPES.put(SlimefunAERecipeTypes.INSCRIBER, SlimefunItem.getByItem(SlimefunAEItems.INSCRIBER));
+        SUPPORTED_RECIPE_TYPES.put(SlimefunAERecipeTypes.CHARGER, SlimefunItem.getByItem(SlimeAEItems.CHARGER));
+        SUPPORTED_RECIPE_TYPES.put(SlimefunAERecipeTypes.INSCRIBER, SlimefunItem.getByItem(SlimeAEItems.INSCRIBER));
         SUPPORTED_RECIPE_TYPES.put(RecipeType.MAGIC_WORKBENCH, SlimefunItem.getByItem(SlimefunItems.MAGIC_WORKBENCH));
         SUPPORTED_RECIPE_TYPES.put(RecipeType.ARMOR_FORGE, SlimefunItem.getByItem(SlimefunItems.ARMOR_FORGE));
         SUPPORTED_RECIPE_TYPES.put(RecipeType.SMELTERY, SlimefunItem.getByItem(SlimefunItems.SMELTERY));

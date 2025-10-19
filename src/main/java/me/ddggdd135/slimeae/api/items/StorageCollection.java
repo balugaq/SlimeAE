@@ -78,7 +78,6 @@ public class StorageCollection implements IStorage {
         return storages.remove(storage);
     }
 
-    @Override
     public void pushItem(@Nonnull ItemStackCache itemStackCache) {
         ItemStack itemStack = itemStackCache.getItemStack();
         ItemKey key = itemStackCache.getItemKey();
@@ -86,7 +85,7 @@ public class StorageCollection implements IStorage {
         IStorage pushStorage = pushCache.get(key.getType());
         if (pushStorage != null) pushStorage.pushItem(itemStackCache);
 
-        if (itemStack.isEmpty()) return;
+        if (itemStack.getType().isAir() || itemStack.getAmount() == 0) return;
 
         List<IStorage> tmp = new ArrayList<>(storages);
         List<ObjectIntImmutablePair<IStorage>> sorted = new ArrayList<>(tmp.size());
@@ -105,11 +104,10 @@ public class StorageCollection implements IStorage {
         for (ObjectIntImmutablePair<IStorage> storage : sorted) {
             storage.left().pushItem(itemStackCache);
             pushCache.put(key.getType(), storage.left());
-            if (itemStack.isEmpty()) return;
+            if (itemStack.getType().isAir() || itemStack.getAmount() == 0) return;
         }
     }
 
-    @Override
     public void pushItem(@Nonnull ItemInfo itemInfo) {
         ItemKey key = itemInfo.getItemKey();
 
@@ -138,7 +136,6 @@ public class StorageCollection implements IStorage {
         }
     }
 
-    @Override
     public boolean contains(@Nonnull ItemRequest[] requests) {
         ItemHashMap<Long> storage = getStorageUnsafe();
         for (ItemRequest request : requests) {
@@ -152,10 +149,10 @@ public class StorageCollection implements IStorage {
     }
 
     @Nonnull
-    @Override
     public ItemStorage takeItem(@Nonnull ItemRequest[] requests) {
-        ItemHashMap<Long> rest = new ItemHashMap<>();
         ItemStorage found = new ItemStorage();
+
+        ItemHashMap<Long> rest = new ItemHashMap<>();
         // init rest
         for (ItemRequest request : requests) {
             if (notIncluded.contains(request.getKey())) continue;
@@ -170,9 +167,12 @@ public class StorageCollection implements IStorage {
                 IStorage storage = takeCache.get(entry.getKey().getType());
                 ItemStorage itemStacks = storage.takeItem(ItemUtils.createRequests(rest));
                 found.addItem(itemStacks.getStorageUnsafe());
-                if (rest.keySet().isEmpty()) break;
             }
         }
+
+        rest = ItemUtils.takeItems(rest, found.getStorageUnsafe());
+        ItemUtils.trim(rest);
+        if (rest.isEmpty()) return found;
 
         for (IStorage storage : storages) {
             ItemStorage itemStacks = storage.takeItem(ItemUtils.createRequests(rest));
@@ -184,7 +184,7 @@ public class StorageCollection implements IStorage {
             }
 
             found.addItem(itemStacks.getStorageUnsafe());
-            rest = ItemUtils.takeItems(rest, found.getStorageUnsafe());
+            rest = ItemUtils.takeItems(rest, itemStacks.getStorageUnsafe());
             ItemUtils.trim(rest);
             if (rest.keySet().isEmpty()) break;
         }

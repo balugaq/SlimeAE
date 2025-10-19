@@ -2,6 +2,8 @@ package me.ddggdd135.slimeae.core.slimefun;
 
 import com.xzavier0722.mc.plugin.slimefun4.storage.controller.SlimefunBlockData;
 import com.xzavier0722.mc.plugin.slimefun4.storage.util.StorageCacheUtils;
+import io.github.sefiraat.networks.network.stackcaches.QuantumCache;
+import io.github.sefiraat.networks.slimefun.network.NetworkQuantumStorage;
 import io.github.thebusybiscuit.slimefun4.api.items.ItemGroup;
 import io.github.thebusybiscuit.slimefun4.api.items.SlimefunItem;
 import io.github.thebusybiscuit.slimefun4.api.items.SlimefunItemStack;
@@ -25,8 +27,9 @@ import me.ddggdd135.slimeae.api.items.ItemRequest;
 import me.ddggdd135.slimeae.api.items.MEStorageCellCache;
 import me.ddggdd135.slimeae.core.NetworkInfo;
 import me.ddggdd135.slimeae.core.items.MenuItems;
-import me.ddggdd135.slimeae.core.items.SlimefunAEItems;
+import me.ddggdd135.slimeae.core.items.SlimeAEItems;
 import me.ddggdd135.slimeae.utils.ItemUtils;
+import me.ddggdd135.slimeae.utils.QuantumUtils;
 import me.mrCookieSlime.Slimefun.api.inventory.BlockMenu;
 import me.mrCookieSlime.Slimefun.api.inventory.BlockMenuPreset;
 import org.bukkit.block.Block;
@@ -53,7 +56,7 @@ public class MEIOPort extends TickingBlock implements IMEObject, InventoryBlock,
         ItemStack setting = blockMenu.getItemInSlot(getSettingSlot());
         if (setting == null || setting.getType().isAir()) return;
         if (!InvUtils.fits(
-                blockMenu.getInventory(), SlimefunAEItems.ME_ITEM_STORAGE_COMPONENT_1K, getMeStorageCellOutputSlots()))
+                blockMenu.getInventory(), SlimeAEItems.ME_ITEM_STORAGE_COMPONENT_1K, getMeStorageCellOutputSlots()))
             return;
         if (SlimefunUtils.isItemSimilar(setting, MenuItems.INPUT_MODE, true, false)) {
             for (int slot : getMeStorageCellInputSlots()) {
@@ -85,6 +88,37 @@ public class MEIOPort extends TickingBlock implements IMEObject, InventoryBlock,
                     meStorageCellCache.pushItem(tmp);
                     MEItemStorageCell.updateLore(itemStack);
                 }
+
+                if (itemStack != null
+                        && !itemStack.getType().isAir()
+                        && SlimefunItem.getByItem(itemStack) instanceof NetworkQuantumStorage) {
+                    QuantumCache quantumCache = QuantumUtils.getQuantumCache(itemStack);
+
+                    if (quantumCache == null) return;
+                    if (quantumCache.getItemStack() == null) return;
+
+                    if (quantumCache.getItemStack() == null || quantumCache.getAmount() <= 0) {
+                        blockMenu.replaceExistingItem(slot, null);
+                        blockMenu.pushItem(itemStack, getMeStorageCellOutputSlots());
+                        return;
+                    }
+
+                    ItemHashMap<Long> tmp = new ItemHashMap<>();
+                    long amount = (long) (quantumCache.getLimit() * 0.01);
+                    long current = quantumCache.getAmount();
+
+                    long toTake = Math.min(amount, current);
+                    current -= toTake;
+
+                    ItemKey itemKey = new ItemKey(quantumCache.getItemStack());
+                    tmp.putKey(itemKey, toTake);
+                    networkStorage.pushItem(tmp);
+                    ItemUtils.trim(tmp);
+
+                    current += tmp.getOrDefault(itemKey, 0L);
+                    quantumCache.setAmount((int) (current));
+                    QuantumUtils.setQuantumCache(itemStack, quantumCache);
+                }
             }
 
             return;
@@ -104,14 +138,14 @@ public class MEIOPort extends TickingBlock implements IMEObject, InventoryBlock,
                     return;
                 }
 
-                if (networkStorage.getStorageUnsafe().isEmpty()) return;
-
                 ItemKey[] storage = meStorageCellCache
                         .getFilterData()
                         .matches(networkStorage.getStorageUnsafe().keyEntrySet().stream()
                                 .filter(x -> x.getValue() > 0)
                                 .map(Map.Entry::getKey)
                                 .toArray(ItemKey[]::new));
+
+                if (storage.length == 0) return;
                 ItemHashMap<Long> tmp = networkStorage
                         .takeItem(new ItemRequest(storage[0], (long) (81920 + (meStorageCellCache.getSize() * 0.01))))
                         .getStorageUnsafe();
@@ -119,6 +153,35 @@ public class MEIOPort extends TickingBlock implements IMEObject, InventoryBlock,
                 ItemUtils.trim(tmp);
                 networkStorage.pushItem(tmp);
                 MEItemStorageCell.updateLore(itemStack);
+            }
+
+            if (itemStack != null
+                    && !itemStack.getType().isAir()
+                    && SlimefunItem.getByItem(itemStack) instanceof NetworkQuantumStorage) {
+                QuantumCache quantumCache = QuantumUtils.getQuantumCache(itemStack);
+
+                if (quantumCache == null) return;
+                if (quantumCache.getItemStack() == null) return;
+
+                if (quantumCache.getItemStack() == null || quantumCache.getAmount() >= quantumCache.getLimit()) {
+                    blockMenu.replaceExistingItem(slot, null);
+                    blockMenu.pushItem(itemStack, getMeStorageCellOutputSlots());
+                    return;
+                }
+
+                ItemKey itemKey = new ItemKey(quantumCache.getItemStack());
+
+                long amount = (long) (quantumCache.getLimit() * 0.01);
+                long current = quantumCache.getAmount();
+
+                long toTake = Math.min(quantumCache.getLimit() - current, amount);
+                ItemHashMap<Long> tmp = networkStorage
+                        .takeItem(new ItemRequest(itemKey, toTake))
+                        .getStorageUnsafe();
+
+                current += tmp.getOrDefault(itemKey, 0L);
+                quantumCache.setAmount((int) (current));
+                QuantumUtils.setQuantumCache(itemStack, quantumCache);
             }
         }
     }

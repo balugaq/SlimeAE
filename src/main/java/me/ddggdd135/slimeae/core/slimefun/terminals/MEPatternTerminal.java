@@ -17,10 +17,11 @@ import javax.annotation.OverridingMethodsMustInvokeSuper;
 import me.ddggdd135.slimeae.SlimeAEPlugin;
 import me.ddggdd135.slimeae.api.autocraft.CraftType;
 import me.ddggdd135.slimeae.api.autocraft.CraftingRecipe;
+import me.ddggdd135.slimeae.api.interfaces.IRecipeCompletableWithGuide;
 import me.ddggdd135.slimeae.api.interfaces.IStorage;
 import me.ddggdd135.slimeae.core.NetworkInfo;
 import me.ddggdd135.slimeae.core.items.MenuItems;
-import me.ddggdd135.slimeae.core.items.SlimefunAEItems;
+import me.ddggdd135.slimeae.core.items.SlimeAEItems;
 import me.ddggdd135.slimeae.core.slimefun.Pattern;
 import me.ddggdd135.slimeae.utils.ItemUtils;
 import me.ddggdd135.slimeae.utils.RecipeUtils;
@@ -29,7 +30,7 @@ import me.mrCookieSlime.Slimefun.api.inventory.BlockMenuPreset;
 import org.bukkit.block.Block;
 import org.bukkit.inventory.ItemStack;
 
-public class MEPatternTerminal extends METerminal {
+public class MEPatternTerminal extends METerminal implements IRecipeCompletableWithGuide {
     public MEPatternTerminal(ItemGroup itemGroup, SlimefunItemStack item, RecipeType recipeType, ItemStack[] recipe) {
         super(itemGroup, item, recipeType, recipe);
     }
@@ -135,6 +136,8 @@ public class MEPatternTerminal extends METerminal {
             makePattern(block);
             return false;
         });
+
+        addJEGRecipeButton(blockMenu, getJEGRecipeButtonSlot());
     }
 
     private void makePattern(Block block) {
@@ -145,7 +148,7 @@ public class MEPatternTerminal extends METerminal {
         ItemStack in = blockMenu.getItemInSlot(getPatternSlot());
         if (in == null || in.getType().isAir() || !(SlimefunItem.getByItem(in) instanceof Pattern)) return;
         ItemStack craftingTypeItem = blockMenu.getItemInSlot(getCraftTypeSlot());
-        ItemStack toOut = SlimefunAEItems.ENCODED_PATTERN.clone();
+        ItemStack toOut = SlimeAEItems.ENCODED_PATTERN.clone();
 
         if (craftingTypeItem == null || SlimefunUtils.isItemSimilar(craftingTypeItem, MenuItems.COOKING, true)) {
             toOut.setAmount(1);
@@ -214,5 +217,19 @@ public class MEPatternTerminal extends METerminal {
     @Override
     public boolean fastInsert() {
         return super.fastInsert();
+    }
+
+    @Override
+    public int[] getIngredientSlots() {
+        return getCraftSlots();
+    }
+
+    public int getJEGRecipeButtonSlot() {
+        return 35;
+    }
+
+    @Override
+    public int getJEGFindingButtonSlot() {
+        return 12;
     }
 }

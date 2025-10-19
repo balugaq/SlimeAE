@@ -41,10 +41,7 @@ import me.mrCookieSlime.Slimefun.api.inventory.BlockMenu;
 import me.mrCookieSlime.Slimefun.api.item_transport.ItemTransportFlow;
 import net.guizhanss.minecraft.guizhanlib.gugu.minecraft.helpers.inventory.ItemStackHelper;
 import org.bukkit.Material;
-import org.bukkit.block.Block;
-import org.bukkit.block.Chest;
-import org.bukkit.block.Container;
-import org.bukkit.block.Furnace;
+import org.bukkit.block.*;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.FurnaceInventory;
@@ -59,7 +56,6 @@ import org.bukkit.persistence.PersistentDataType;
  */
 public class ItemUtils {
     public static final String DISPLAY_ITEM_KEY = "display_item";
-    public static final String ITEM_KEY = "item";
     /**
      * 根据模板物品创建指定数量的物品堆数组
      *
@@ -160,9 +156,9 @@ public class ItemUtils {
      */
     public static boolean contains(@Nonnull ItemHashMap<Long> storage, @Nonnull ItemRequest[] requests) {
         for (ItemRequest request : requests) {
-            if (!storage.containsKey(request.getKey()) || storage.getKey(request.getKey()) < request.getAmount())
-                return false;
+            if (storage.getOrDefault(request.getKey(), 0L) < request.getAmount()) return false;
         }
+
         return true;
     }
 
@@ -499,14 +495,13 @@ public class ItemUtils {
     @Nonnull
     private static ItemStack[] getVanillaItemStacks(Block block) {
         Container container = (Container) PaperLib.getBlockState(block, false).getState();
-        ItemStack[] items = new ItemStack[0];
+        ItemStack[] items = container.getInventory().getContents();
+
         if (container instanceof Furnace furnace) {
             FurnaceInventory furnaceInventory = furnace.getInventory();
             items = new ItemStack[] {furnaceInventory.getResult()};
-        } else if (container instanceof Chest chest) {
-            Inventory inventory = chest.getBlockInventory();
-            items = inventory.getContents();
         }
+
         return items;
     }
 
@@ -718,23 +713,13 @@ public class ItemUtils {
             lore.add("&e物品数量 " + amount);
             if (addPinnedLore) lore.add("&e===已置顶===");
             result.setLore(CMIChatColor.translate(lore));
-
-            NBT.modify(result, x -> {
-                x.setString(ITEM_KEY, SerializeUtils.object2String(itemStack));
-            });
         }
 
         NBT.modify(result, x -> {
             x.setBoolean(DISPLAY_ITEM_KEY, true);
         });
-        return result;
-    }
 
-    @Nonnull
-    public static ItemStack getDisplayItem(@Nonnull ItemStack itemStack) {
-        return (ItemStack) NBT.get(itemStack, x -> {
-            return SerializeUtils.string2Object(x.getString(ITEM_KEY));
-        });
+        return result;
     }
 
     public static <T extends SlimefunItem> T setRecipeOutput(@Nonnull T item, @Nonnull ItemStack output) {
@@ -742,7 +727,9 @@ public class ItemUtils {
         return item;
     }
 
-    public static String getItemName(ItemStack itemStack) {
+    public static String getItemName(@Nullable ItemStack itemStack) {
+        if (itemStack == null || itemStack.getType().isAir()) return "";
+
         String displayName = itemStack.getItemMeta().getDisplayName();
         if (!displayName.isEmpty()) return displayName;
         SlimefunItem slimefunItem = SlimefunItem.getByItem(itemStack);
@@ -797,5 +784,29 @@ public class ItemUtils {
         result.setType(material);
 
         return result;
+    }
+
+    public static boolean matchesAll(@Nonnull ItemStack[] left, @Nonnull ItemStack[] right, boolean checkAmount) {
+        for (int i = 0; i < Math.max(left.length, right.length); i++) {
+            ItemStack x = new ItemStack(Material.AIR);
+            ItemStack y = new ItemStack(Material.AIR);
+            if (left.length > i) {
+                x = left[i];
+                if (x == null) x = new ItemStack(Material.AIR);
+            }
+            if (right.length > i) {
+                y = right[i];
+                if (y == null) y = new ItemStack(Material.AIR);
+            }
+
+            if (x.getType().isAir()) x.setAmount(0);
+            if (y.getType().isAir()) y.setAmount(0);
+
+            if (!SlimefunUtils.isItemSimilar(x, y, true, checkAmount)) {
+                return false;
+            }
+        }
+
+        return true;
     }
 }
