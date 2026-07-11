@@ -31,6 +31,9 @@ import me.ddggdd135.slimeae.integrations.*;
 import me.ddggdd135.slimeae.tasks.*;
 import me.ddggdd135.slimeae.utils.RecipeUtils;
 import me.ddggdd135.slimeae.utils.SlimefunItemUtils;
+import net.byteflux.libby.Library;
+import net.byteflux.libby.LibraryManager;
+import net.guizhanss.guizhanlib.libraries.BukkitLibraryManager;
 import net.guizhanss.minecraft.guizhanlib.updater.GuizhanUpdater;
 import org.bstats.bukkit.Metrics;
 import org.bukkit.Bukkit;
@@ -71,6 +74,8 @@ public final class SlimeAEPlugin extends JavaPlugin implements SlimefunAddon {
     @Override
     public void onEnable() {
         instance = this;
+
+        loadLibraries();
 
         networkData = new NetworkData();
         infinityIntegration = new InfinityIntegration();
@@ -402,6 +407,27 @@ public final class SlimeAEPlugin extends JavaPlugin implements SlimefunAddon {
      */
     public static boolean isDebug() {
         return debug;
+    }
+
+    private void loadLibraries() {
+        LibraryManager libraryManager = new BukkitLibraryManager(this);
+        libraryManager.addMavenCentral();
+
+        getLogger().info("正在加载 Pinyin");
+        Library pinyin = Library.builder()
+                .groupId("com{}github{}houbb")
+                .artifactId("pinyin")
+                .version("0.4.0")
+                .build();
+        libraryManager.loadLibrary(pinyin);
+
+        getLogger().info("正在加载 opencc4j");
+        Library opencc4j = Library.builder()
+                .groupId("com{}github{}houbb")
+                .artifactId("opencc4j")
+                .version("1.14.0")
+                .build();
+        libraryManager.loadLibrary(opencc4j);
     }
 
     public void reloadConfig0() {

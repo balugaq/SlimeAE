@@ -199,7 +199,7 @@
         <dependency>
             <groupId>com.github.balugaq</groupId>
             <artifactId>JustEnoughGuide</artifactId>
-            <version>3840a709aa</version>
+            <version>bd67e7e9f9</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
@@ -260,6 +260,12 @@
             <artifactId>junit-jupiter</artifactId>
             <version>5.10.2</version>
             <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>net.byteflux</groupId>
+            <artifactId>libby-bukkit</artifactId>
+            <version>1.3.1</version>
+            <scope>compile</scope>
         </dependency>
     </dependencies>
 </project>
