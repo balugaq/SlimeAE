@@ -51,11 +51,15 @@
                     <relocations>
                         <relocation>
                             <pattern>org.bstats</pattern>
-                            <shadedPattern>me.ddggdd135.slimeae.libs</shadedPattern>
+                            <shadedPattern>me.ddggdd135.slimeae.libs.bstats</shadedPattern>
                         </relocation>
                         <relocation>
                             <pattern>com.zaxxer.hikari</pattern>
                             <shadedPattern>me.ddggdd135.slimeae.libs.hikari</shadedPattern>
+                        </relocation>
+                        <relocation>
+                            <pattern>net.byteflux.libby</pattern>
+                            <shadedPattern>me.ddggdd135.slimeae.libs.libby</shadedPattern>
                         </relocation>
                     </relocations>
                 </configuration>
