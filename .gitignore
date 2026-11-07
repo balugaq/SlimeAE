@@ -45,3 +45,12 @@ dependency-reduced-pom.xml
 
 # reports
 report*.md
+.workbuddy/
+.gradle/
+!gradle/wrapper/gradle-wrapper.jar
+!lib/*.jar
+run/
+server/
+
+# Gradle build output
+build/

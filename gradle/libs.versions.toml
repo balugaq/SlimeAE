@@ -1,0 +1,49 @@
+# Gradle Version Catalog
+# 依赖集中管理：build.gradle.kts 里用 `libs.xxx` 引用。
+# alias 一律 kebab-case，Kotlin DSL 访问时自动转驼峰（如 `paper-api` → `libs.paper.api`）。
+
+[versions]
+# Core
+# 原 pom 值，迁移时验证均可解析，未升级
+paper-api = "1.20.1-R0.1-SNAPSHOT"
+slimefun4 = "2025.1.2"
+cmilib = "1.5.6.3"
+gugu-slimefun-lib = "3e58618ecc"
+guizhan-lib-plugin = "2.3.0"
+
+# Tools etc.
+bstats = "3.1.0"
+hikaricp = "4.0.3"
+libby = "1.3.1"
+pinyin = "0.4.0"
+sqlite-jdbc = "3.45.3.0"
+
+# Supported Plugins
+infinity-expansion = "9fb38dfd1e"
+# 原 pom 用 commit bd67e7e9f9，其 JitPack pom 已 404；2026-11-07 经主人确认升级到 2.2.0
+just-enough-guide = "2.2.0"
+
+# Plugins
+shadow = "9.6.1"
+
+[libraries]
+# Core
+paper-api = { module = "io.papermc.paper:paper-api", version.ref = "paper-api" }
+slimefun4 = { module = "com.github.SlimefunGuguProject:Slimefun4", version.ref = "slimefun4" }
+cmilib = { module = "com.github.Zrips:CMILib", version.ref = "cmilib" }
+gugu-slimefun-lib = { module = "com.github.TimetownDev:GuguSlimefunLib", version.ref = "gugu-slimefun-lib" }
+guizhan-lib-plugin = { module = "net.guizhanss:GuizhanLibPlugin", version.ref = "guizhan-lib-plugin" }
+
+# Tools etc.
+bstats = { module = "org.bstats:bstats-bukkit", version.ref = "bstats" }
+hikaricp = { module = "com.zaxxer:HikariCP", version.ref = "hikaricp" }
+libby-bukkit = { module = "net.byteflux:libby-bukkit", version.ref = "libby" }
+pinyin = { module = "com.github.houbb:pinyin", version.ref = "pinyin" }
+sqlite-jdbc = { module = "org.xerial:sqlite-jdbc", version.ref = "sqlite-jdbc" }
+
+# Supported Plugins
+infinity-expansion = { module = "com.github.JWJUN233233:InfinityExpansion", version.ref = "infinity-expansion" }
+just-enough-guide = { module = "com.github.balugaq:JustEnoughGuide", version.ref = "just-enough-guide" }
+
+[plugins]
+shadow = { id = "com.gradleup.shadow", version.ref = "shadow" }

@@ -1,5 +1,5 @@
 name: SlimeAEPlugin
-version: '${project.version}'
+version: '${version}'
 
 main: me.ddggdd135.slimeae.SlimeAEPlugin
 api-version: '1.16'
